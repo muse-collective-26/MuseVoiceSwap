@@ -1,0 +1,13 @@
+[project]
+name = "muse-voice-swap"
+description = "Swap the speaking voice in a mixed audio clip (dialogue + ambient sound) while keeping the background intact — Demucs separation, Whisper transcription, local-Gemma emotion tagging, ECAPA-TDNN speaker auto-assignment, Fish Audio S2 cloning, with a Muse-Director-style timeline editor for reviewing/correcting segments."
+version = "1.0.0"
+license = { file = "LICENSE" }
+
+[project.urls]
+Repository = "https://github.com/muse-collective-26/MuseVoiceSwap"
+
+[tool.comfy]
+PublisherId = "muse-collective"
+DisplayName = "Muse Collective Voice Swap"
+Icon = ""
