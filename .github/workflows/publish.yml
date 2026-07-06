@@ -14,7 +14,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Publish Custom Node
-        uses: Comfy-Org/publish-node-action@main
+      - uses: actions/setup-python@v5
         with:
-          personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+          python-version: "3.10"
+      - name: Install comfy-cli
+        run: pip install comfy-cli
+      - name: Publish Custom Node
+        env:
+          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$REGISTRY_ACCESS_TOKEN" ]; then
+            echo "::error::REGISTRY_ACCESS_TOKEN secret is empty or not set on this repository."
+            exit 1
+          fi
+          comfy --skip-prompt --no-enable-telemetry env
+          comfy node publish --token="$REGISTRY_ACCESS_TOKEN"
