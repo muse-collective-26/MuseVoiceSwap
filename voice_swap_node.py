@@ -148,8 +148,10 @@ class MuseVoiceSwapV1:
                         "comparing its voice against reference_audio/_2/_3 using a speaker-"
                         "embedding similarity match. This is a best-guess classifier, not a "
                         "guarantee — review/correct assignments in the timeline afterward, "
-                        "same as you would Whisper's transcript. Lock a segment to exempt it "
-                        "from being reassigned on the next run."
+                        "same as you would Whisper's transcript. Only runs on a fresh (non-"
+                        "override) pass — once use_timeline_override is on, your manual "
+                        "corrections are trusted as-is and this is skipped entirely, so you "
+                        "don't need to lock a segment just to protect a manual speaker fix."
                     ),
                 }),
 
@@ -289,8 +291,11 @@ class MuseVoiceSwapV1:
                 min_gap_seconds=min_gap_seconds,
             )
 
-        # 2b. AUTO-ASSIGN SPEAKERS (optional, skippable per-segment via "locked") ---
-        if multi_speaker_mode and auto_assign_speakers:
+        # 2b. AUTO-ASSIGN SPEAKERS (skipped entirely under override — same "trust
+        # my edits" contract as segment detection above, otherwise every re-run
+        # would silently re-guess and overwrite manual speaker corrections made
+        # in the timeline unless every corrected segment was also locked) -----
+        if (not use_timeline_override) and multi_speaker_mode and auto_assign_speakers:
             reference_embeddings = {}
             for spk_num, ref_audio_candidate in (
                 (1, reference_audio), (2, reference_audio_2), (3, reference_audio_3),
