@@ -7,6 +7,7 @@ const BG_TRACK_HEIGHT = 60;
 const CANVAS_HEIGHT = RULER_HEIGHT + VOCAL_TRACK_HEIGHT + BG_TRACK_HEIGHT;
 const HANDLE_HIT_PX = 10;
 const PANEL_HEIGHT = 130;
+const PANEL_HEIGHT_IDLE = 40; // just the "click a segment" hint — no segment selected
 const PREVIEW_HEIGHT = 130;
 
 const NODE_COLOR = "#2D1B69";
@@ -501,6 +502,11 @@ class VoiceSwapTimelineEditor {
       empty.className = "mvs-empty";
       empty.textContent = "Click a segment to edit its transcript.";
       this.panel.appendChild(empty);
+      // No segment selected -- the node's reserved height for this widget
+      // (see computeSize) shrinks to just this hint, so nudge LiteGraph to
+      // re-measure and shrink the node now rather than on the next
+      // unrelated redraw.
+      this.node.setDirtyCanvas(true, true);
       return;
     }
 
@@ -581,6 +587,10 @@ class VoiceSwapTimelineEditor {
     lockRow.appendChild(lockCheck);
     lockRow.appendChild(lockLabel);
     this.panel.appendChild(lockRow);
+
+    // A segment just got selected -- reserved height grows back to
+    // PANEL_HEIGHT (see computeSize); nudge LiteGraph to re-measure now.
+    this.node.setDirtyCanvas(true, true);
   }
 
   _commitChanges() {
@@ -669,7 +679,8 @@ app.registerExtension({
       });
       widget.computeSize = function (width) {
         const nodeWidth = self.size?.[0] || width || 760;
-        return [Math.max(10, nodeWidth - 30), CANVAS_HEIGHT + PREVIEW_HEIGHT + PANEL_HEIGHT + 60];
+        const panelH = self._timelineEditor?.selectedId ? PANEL_HEIGHT : PANEL_HEIGHT_IDLE;
+        return [Math.max(10, nodeWidth - 30), CANVAS_HEIGHT + PREVIEW_HEIGHT + panelH + 60];
       };
 
       setTimeout(() => {
