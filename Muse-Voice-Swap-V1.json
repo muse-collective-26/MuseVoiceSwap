@@ -1,0 +1,771 @@
+{
+  "id": "113b8690-7d69-42f6-96eb-a329c7fa2c92",
+  "revision": 0,
+  "last_node_id": 23,
+  "last_link_id": 59,
+  "nodes": [
+    {
+      "id": 19,
+      "type": "MuseVoiceSwapV1",
+      "pos": [
+        7946.432007741344,
+        1737.4413528490902
+      ],
+      "size": [
+        775.0262960180307,
+        928.5651556891232
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source_audio",
+          "type": "AUDIO",
+          "link": 59
+        },
+        {
+          "name": "reference_audio",
+          "type": "AUDIO",
+          "link": 55
+        },
+        {
+          "name": "reference_audio_2",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": 56
+        },
+        {
+          "name": "reference_audio_3",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "final_audio",
+          "type": "AUDIO",
+          "links": [
+            50
+          ]
+        },
+        {
+          "name": "new_vocals_only",
+          "type": "AUDIO",
+          "links": [
+            51
+          ]
+        },
+        {
+          "name": "bg_audio_only",
+          "type": "AUDIO",
+          "links": [
+            52
+          ]
+        },
+        {
+          "name": "speaker_2_vocals_only",
+          "type": "AUDIO",
+          "links": [
+            53
+          ]
+        },
+        {
+          "name": "speaker_3_vocals_only",
+          "type": "AUDIO",
+          "links": null
+        },
+        {
+          "name": "timeline_data",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "aux_id": "muse-collective-26/MuseVoiceSwap",
+        "ver": "7be33da025914091bd2a566c175f9d34f9ff5edb",
+        "Node name for S&R": "MuseVoiceSwapV1",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "",
+        "{\"schema_version\":1,\"source_duration\":16.52,\"vocalSegments\":[{\"id\":\"seg_1\",\"start\":0.232,\"end\":2.113,\"text\":\"John, I just don't know.\",\"emotion_text\":\"John, [disappointed] I just don't know.\",\"speaker\":2,\"reference_audio_override\":\"\",\"reference_text_override\":\"\",\"locked\":false},{\"id\":\"seg_2\",\"start\":2.523260273972603,\"end\":5.41,\"text\":\"It looks very much like radiation, but...\",\"emotion_text\":\"It looks very much like radiation, but... [pauses]\",\"speaker\":2,\"reference_audio_override\":\"\",\"reference_text_override\":\"\",\"locked\":false},{\"id\":\"seg_3\",\"start\":5.747,\"end\":6.548,\"text\":\"But what?\",\"emotion_text\":\"[confused] But what?\",\"speaker\":1,\"reference_audio_override\":\"\",\"reference_text_override\":\"\",\"locked\":false},{\"id\":\"seg_4\",\"start\":7.523,\"end\":9.009,\"text\":\"There is no radiation.\",\"emotion_text\":\"[calm] There is no radiation.\",\"speaker\":2,\"reference_audio_override\":\"\",\"reference_text_override\":\"\",\"locked\":false},{\"id\":\"seg_6\",\"start\":12.341,\"end\":12.643,\"text\":\"lecture.\",\"emotion_text\":\"[confused] Victor.\",\"speaker\":1,\"reference_audio_override\":\"\",\"reference_text_override\":\"\",\"locked\":false},{\"id\":\"seg_7\",\"start\":12.957,\"end\":16.475,\"text\":\"You know me well enough to know I'm not going to ignore the fact that people are dying up here.\",\"emotion_text\":\"[serious] You know me well enough to know I'm not going to ignore the fact that people are dying up here.\",\"speaker\":1,\"reference_audio_override\":\"\",\"reference_text_override\":\"\",\"locked\":false}],\"bgWaveformPeaks\":[0.00924,0.00947,0.00874,0.00883,0.00909,0.0078,0.0093,0.01175,0.00868,0.01154,0.00965,0.0087,0.00666,0.00723,0.00764,0.00783,0.00767,0.00706,0.00644,0.00617,0.00599,0.00645,0.0078,0.00758,0.00797,0.00839,0.00626,0.00716,0.00686,0.008,0.00883,0.0082,0.00634,0.00634,0.01005,0.00752,0.00619,0.00867,0.00837,0.0099,0.00946,0.00916,0.00993,0.00845,0.00698,0.00637,0.00601,0.00509,0.0041,0.00576,0.00708,0.00715,0.00821,0.00733,0.00725,0.00716,0.00712,0.00711,0.00717,0.0064,0.00712,0.00712,0.00723,0.00572,0.00586,0.00627,0.00682,0.00757,0.00693,0.0076,0.00857,0.00907,0.00902,0.00858,0.00711,0.00673,0.00687,0.01226,0.00901,0.00698,0.00673,0.00642,0.00651,0.00859,0.00856,0.00765,0.00845,0.01421,0.02143,0.00784,0.0085,0.0089,0.00882,0.00781,0.00825,0.00828,0.0072,0.00796,0.0076,0.00802,0.00728,0.00781,0.00768,0.00761,0.00835,0.00783,0.00794,0.00907,0.00738,0.00682,0.0082,0.00745,0.00822,0.0081,0.00755,0.00767,0.00818,0.00802,0.00877,0.00867,0.00743,0.00726,0.00756,0.00749,0.0072,0.00593,0.00533,0.00522,0.00619,0.00586,0.006,0.0061,0.00642,0.00536,0.0075,0.00808,0.00826,0.0083,0.00758,0.00557,0.00459,0.00579,0.00576,0.00741,0.00775,0.00744,0.00711,0.00731,0.00652,0.00788,0.00666,0.00494,0.00564,0.00582,0.0061,0.00523,0.00614,0.00669,0.00511,0.00627,0.00685,0.00633,0.00727,0.00768,0.00856,0.00763,0.00724,0.00568,0.00625,0.00826,0.00772,0.0075,0.00731,0.00655,0.00719,0.00719,0.00658,0.00779,0.00797,0.00688,0.00632,0.00689,0.00481,0.00646,0.00814,0.00802,0.00922,0.00943,0.01013,0.00844,0.01022,0.00815,0.007,0.00826,0.00896,0.01025,0.00954,0.00868,0.00715,0.00868,0.0083,0.00772,0.00841,0.00748,0.0074,0.0085,0.00819,0.00757,0.00689,0.00769,0.00786,0.00683,0.00649,0.00764,0.00806,0.007,0.0064,0.00804,0.00766,0.00789,0.00751,0.00723,0.00741,0.0082,0.00755,0.00719,0.00811,0.0073,0.0069,0.00623,0.00577,0.00603,0.00642,0.00548,0.00529,0.00612,0.0063,0.00516,0.00565,0.00619,0.00644,0.00634,0.00648,0.00509,0.00595,0.00681,0.00721,0.00722,0.00816,0.00655,0.00617,0.00563,0.00654,0.00679,0.00809,0.00866,0.00739,0.00773,0.00665,0.0062,0.00774,0.00737,0.00784,0.00707,0.00858,0.01164,0.01124,0.012,0.01154,0.01064,0.0121,0.01289,0.01202,0.01341,0.01159,0.01203,0.01099,0.01071,0.01213,0.01137,0.01119,0.00985,0.01131,0.01182,0.01162,0.01245,0.01134,0.01219,0.01116,0.01126,0.01396,0.01169,0.01075,0.0115,0.01143,0.01132,0.01146,0.01199,0.01252,0.00948,0.01235,0.01074,0.01136,0.01053,0.00979,0.00962,0.00995,0.00915,0.01034,0.01032,0.01005,0.00927,0.00929,0.00973,0.01046,0.01009,0.00866,0.00859,0.00975,0.01018,0.00933,0.00966,0.01006,0.0112,0.00948,0.00967,0.00985,0.00978,0.00904,0.01057,0.00899,0.00913,0.00949,0.00874,0.00908,0.00877,0.00932,0.00874,0.00959,0.00947,0.00943,0.00924,0.00983,0.00898,0.01037,0.00858,0.00844,0.00902,0.00977,0.00904,0.01224,0.00951,0.01009,0.00993,0.01094,0.00885,0.03023,0.01452,0.01081,0.01127,0.01001,0.00875,0.00902,0.00968,0.00943,0.00927,0.00941,0.00974,0.0093,0.01037,0.01012,0.00998,0.00935,0.00944,0.00904,0.00879,0.009,0.00977,0.0097,0.00899,0.00941,0.00902,0.00991,0.0101,0.01002,0.00959,0.00878,0.00849,0.00883,0.01004,0.00903,0.00881,0.00998,0.01006,0.00864,0.00962,0.00852,0.00896,0.00846,0.01238],\"last_run\":{}}",
+        true,
+        true,
+        true,
+        10,
+        0.1,
+        "linear",
+        35,
+        0.3,
+        0.2,
+        "small",
+        "auto",
+        true,
+        "gemma4_e4b_it_fp8_scaled.safetensors",
+        0.7,
+        "s2-pro-fp8",
+        "auto",
+        "auto",
+        "auto",
+        "auto",
+        0,
+        200,
+        0.8,
+        0.8,
+        1.1,
+        0,
+        true,
+        "ripple",
+        2048,
+        "hold_last",
+        1,
+        "",
+        "",
+        "",
+        ""
+      ],
+      "color": "#2D1B69",
+      "bgcolor": "#0d0818"
+    },
+    {
+      "id": 9,
+      "type": "VHS_LoadAudioUpload",
+      "pos": [
+        7562.249298204825,
+        2087.445826584202
+      ],
+      "size": [
+        323.19145537306395,
+        217.12470033748423
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            56
+          ]
+        },
+        {
+          "name": "duration",
+          "type": "FLOAT",
+          "links": null
+        }
+      ],
+      "title": "Speaker Voice 2",
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "a6879b83886490dd434249cf729b7cdd2aace241",
+        "Node name for S&R": "VHS_LoadAudioUpload",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": {
+        "audio": "Joint_00001_.flac",
+        "start_time": 0,
+        "duration": 0,
+        "audiopreview": {
+          "params": {
+            "start_time": 0,
+            "duration": 0,
+            "filename": "Joint_00001_.flac",
+            "type": "input"
+          }
+        }
+      },
+      "color": "#0D3A1AFF"
+    },
+    {
+      "id": 5,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        8843.743451649276,
+        1737.4413528490902
+      ],
+      "size": [
+        270,
+        160
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 50
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "title": "Full Audio",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.27.0",
+        "Node name for S&R": "SaveAudioAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "audio/ComfyUI",
+        "mp3",
+        "V0"
+      ],
+      "color": "#1A0D3AFF"
+    },
+    {
+      "id": 14,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        8843.743451649276,
+        1979.91665030607
+      ],
+      "size": [
+        270,
+        160
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 51
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "title": "Speaker 1 Output",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.27.0",
+        "Node name for S&R": "SaveAudioAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "audio/ComfyUI",
+        "mp3",
+        "V0"
+      ],
+      "color": "#66AF20FF"
+    },
+    {
+      "id": 16,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        8843.743451649276,
+        2211.0081767529446
+      ],
+      "size": [
+        270,
+        160
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 53
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "title": "Speaker 2 Output",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.27.0",
+        "Node name for S&R": "SaveAudioAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "audio/ComfyUI",
+        "mp3",
+        "V0"
+      ],
+      "color": "#0D3A1AFF"
+    },
+    {
+      "id": 15,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        8843.743451649276,
+        2441.9718220381865
+      ],
+      "size": [
+        270,
+        160
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 52
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "title": "Background Audio",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.27.0",
+        "Node name for S&R": "SaveAudioAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "audio/ComfyUI",
+        "mp3",
+        "V0"
+      ],
+      "color": "#304B59FF"
+    },
+    {
+      "id": 4,
+      "type": "VHS_LoadAudioUpload",
+      "pos": [
+        7562.249298204825,
+        1737.4413528490902
+      ],
+      "size": [
+        323.19145537306395,
+        258.9487130263617
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            55
+          ]
+        },
+        {
+          "name": "duration",
+          "type": "FLOAT",
+          "links": null
+        }
+      ],
+      "title": "Speaker Voice 1",
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "a6879b83886490dd434249cf729b7cdd2aace241",
+        "Node name for S&R": "VHS_LoadAudioUpload",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": {
+        "audio": "cleanandy_00001.mp3",
+        "start_time": 26.860000000000007,
+        "duration": 25,
+        "audiopreview": {
+          "params": {
+            "start_time": 26.860000000000007,
+            "duration": 25,
+            "filename": "cleanandy_00001.mp3",
+            "type": "input"
+          }
+        }
+      },
+      "color": "#66AF20FF"
+    },
+    {
+      "id": 21,
+      "type": "Any Switch (rgthree)",
+      "pos": [
+        7626.556413488979,
+        1678.0711409428977
+      ],
+      "size": [
+        263.72841796875,
+        106
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "dir": 3,
+          "name": "any_01",
+          "type": "AUDIO",
+          "link": 57
+        },
+        {
+          "dir": 3,
+          "name": "any_02",
+          "type": "AUDIO",
+          "link": 58
+        },
+        {
+          "dir": 3,
+          "name": "any_03",
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "dir": 3,
+          "name": "any_04",
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "any_05",
+          "type": "AUDIO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "dir": 4,
+          "label": "AUDIO",
+          "name": "*",
+          "shape": 3,
+          "type": "AUDIO",
+          "links": [
+            59
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "27b4f4cdcf3b127c29d5d8135ac1536ecbd4c383",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 12,
+      "type": "VHS_LoadVideo",
+      "pos": [
+        6943.025900794434,
+        1996.763646066628
+      ],
+      "size": [
+        537.989549012203,
+        712.4921617591523
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "meta_batch",
+          "shape": 7,
+          "type": "VHS_BatchManager",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "name": "frame_count",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            58
+          ]
+        },
+        {
+          "name": "video_info",
+          "type": "VHS_VIDEOINFO",
+          "links": null
+        }
+      ],
+      "title": "Source Audio from Video",
+      "properties": {
+        "cnr_id": "comfyui-workflow-encrypt",
+        "ver": "5ec45fdac73d8bd6d732af76bbe81c94413b3e36",
+        "Node name for S&R": "VHS_LoadVideo",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": {
+        "video": "sp1999clip5.mp4",
+        "force_rate": 0,
+        "custom_width": 0,
+        "custom_height": 0,
+        "frame_load_cap": 0,
+        "skip_first_frames": 0,
+        "select_every_nth": 1,
+        "format": "AnimateDiff",
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "sp1999clip5.mp4",
+            "type": "input",
+            "format": "video/mp4",
+            "force_rate": 0,
+            "custom_width": 0,
+            "custom_height": 0,
+            "frame_load_cap": 0,
+            "skip_first_frames": 0,
+            "select_every_nth": 1
+          }
+        }
+      },
+      "color": "#1A0D3AFF"
+    },
+    {
+      "id": 23,
+      "type": "MarkdownNote",
+      "pos": [
+        6330.6507422302075,
+        1674.6500868213602
+      ],
+      "size": [
+        515.3017593266959,
+        876.1534922766979
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "MUSE COLLECTIVE - Note - START HERE",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "# MODELS AND NODES USED IN THIS WORKFLOW\n\n---\n\n### Put all models in the models folder, organised into their respective subfolders.\n### If a required folder doesn't exist, create it.\n\n---\n\n## 🟣 Gemma Text Encoder (for emotion-tag annotation)\nDownload **gemma4_e4b_it_fp8_scaled.safetensors** from [HERE](https://huggingface.co/Comfy-Org/gemma-4/resolve/main/text_encoders/gemma4_e4b_it_fp8_scaled.safetensors)\n\n📁 **Place in:** `ComfyUI/models/text_encoders`\n\n---\n\n## 🟣 Fish Audio S2 Pro (voice cloning)\nDownload the whole **s2-pro-fp8** repo from [HERE](https://huggingface.co/drbaph/s2-pro-fp8) (`model.safetensors`, `codec.pth`, and its config/tokenizer files)\n\n📁 **Place in:** `ComfyUI/models/fishaudioS2/s2-pro-fp8`\n\n💡 Easier option: skip the manual download — in the Muse Voice Swap V1 node, set `fish_model_path` to **`s2-pro-fp8 (auto download)`** and it fetches this automatically on first run.\n\n---\n\n## 🟣 Demucs (vocal/background separation)\nNo manual download — **hdemucs_high_trained.pt** auto-downloads via torchaudio's own model hub the first time the node runs.\n\n📁 **Auto-cached to:** `%USERPROFILE%\\.cache\\torch\\hub\\torchaudio\\models`\n\n---\n\n## 🟣 ECAPA-TDNN Speaker Embedding (auto speaker-assignment)\nNo manual download — **speechbrain/spkrec-ecapa-voxceleb** auto-downloads from HuggingFace the first time `auto_assign_speakers` is used.\n\n📁 **Auto-cached to:** `speechbrain_models/spkrec-ecapa-voxceleb` (inside your ComfyUI install root)\n\n---\n\n## 🟣 Whisper (transcription)\nNo manual download — the model size selected in `whisper_model_size` (e.g. `small`) auto-downloads via the `openai-whisper` package's own cache on first use.\n\n---\n\n## 🧩 Nodes Installed from ComfyUI Manager\n\n- **ComfyUI-FishAudioS2** — voice cloning ([Saganaki22/ComfyUI-FishAudioS2](https://github.com/Saganaki22/ComfyUI-FishAudioS2))\n- **audio-separation-nodes-comfyui** — Demucs separation, time-stretch, mixing ([christian-byrne/audio-separation-nodes-comfyui](https://github.com/christian-byrne/audio-separation-nodes-comfyui))\n- **ComfyUI-VideoHelperSuite** — audio/video loading (`VHS_LoadAudioUpload`, `VHS_LoadVideo`)\n\nSearch for each by name in Manager → Custom Nodes → search\n\n---\n\n## 🟣 Muse Collective Voice Swap Node\n\nInstall via Manager → **Install via Git URL:**"
+      ],
+      "color": "#EB6E33FF",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 20,
+      "type": "VHS_LoadAudioUpload",
+      "pos": [
+        6943.025900794434,
+        1674.6500868213602
+      ],
+      "size": [
+        537.9895490122026,
+        242.98379379251742
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            57
+          ]
+        },
+        {
+          "name": "duration",
+          "type": "FLOAT",
+          "links": null
+        }
+      ],
+      "title": "Source Audio",
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "a6879b83886490dd434249cf729b7cdd2aace241",
+        "Node name for S&R": "VHS_LoadAudioUpload",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": {
+        "audio": "cleanandy_00001.mp3",
+        "start_time": 26.860000000000007,
+        "duration": 25,
+        "audiopreview": {
+          "params": {
+            "start_time": 26.860000000000007,
+            "duration": 25,
+            "filename": "cleanandy_00001.mp3",
+            "type": "input"
+          }
+        }
+      },
+      "color": "#1A0D3AFF"
+    }
+  ],
+  "links": [
+    [
+      50,
+      19,
+      0,
+      5,
+      0,
+      "AUDIO"
+    ],
+    [
+      51,
+      19,
+      1,
+      14,
+      0,
+      "AUDIO"
+    ],
+    [
+      52,
+      19,
+      2,
+      15,
+      0,
+      "AUDIO"
+    ],
+    [
+      53,
+      19,
+      3,
+      16,
+      0,
+      "AUDIO"
+    ],
+    [
+      55,
+      4,
+      0,
+      19,
+      1,
+      "AUDIO"
+    ],
+    [
+      56,
+      9,
+      0,
+      19,
+      2,
+      "AUDIO"
+    ],
+    [
+      57,
+      20,
+      0,
+      21,
+      0,
+      "AUDIO"
+    ],
+    [
+      58,
+      12,
+      2,
+      21,
+      1,
+      "AUDIO"
+    ],
+    [
+      59,
+      21,
+      0,
+      19,
+      0,
+      "AUDIO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ue_links": [],
+    "ds": {
+      "scale": 0.5989500000000008,
+      "offset": [
+        -5691.645344930289,
+        -1184.4071330155698
+      ]
+    },
+    "links_added_by_ue": [],
+    "frontendVersion": "1.45.20",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
