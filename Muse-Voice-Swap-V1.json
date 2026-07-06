@@ -588,38 +588,6 @@
       "color": "#1A0D3AFF"
     },
     {
-      "id": 23,
-      "type": "MarkdownNote",
-      "pos": [
-        6330.6507422302075,
-        1674.6500868213602
-      ],
-      "size": [
-        515.3017593266959,
-        876.1534922766979
-      ],
-      "flags": {
-        "collapsed": false
-      },
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "MUSE COLLECTIVE - Note - START HERE",
-      "properties": {
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.6.2",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        "# MODELS AND NODES USED IN THIS WORKFLOW\n\n---\n\n### Put all models in the models folder, organised into their respective subfolders.\n### If a required folder doesn't exist, create it.\n\n---\n\n## 🟣 Gemma Text Encoder (for emotion-tag annotation)\nDownload **gemma4_e4b_it_fp8_scaled.safetensors** from [HERE](https://huggingface.co/Comfy-Org/gemma-4/resolve/main/text_encoders/gemma4_e4b_it_fp8_scaled.safetensors)\n\n📁 **Place in:** `ComfyUI/models/text_encoders`\n\n---\n\n## 🟣 Fish Audio S2 Pro (voice cloning)\nDownload the whole **s2-pro-fp8** repo from [HERE](https://huggingface.co/drbaph/s2-pro-fp8) (`model.safetensors`, `codec.pth`, and its config/tokenizer files)\n\n📁 **Place in:** `ComfyUI/models/fishaudioS2/s2-pro-fp8`\n\n💡 Easier option: skip the manual download — in the Muse Voice Swap V1 node, set `fish_model_path` to **`s2-pro-fp8 (auto download)`** and it fetches this automatically on first run.\n\n---\n\n## 🟣 Demucs (vocal/background separation)\nNo manual download — **hdemucs_high_trained.pt** auto-downloads via torchaudio's own model hub the first time the node runs.\n\n📁 **Auto-cached to:** `%USERPROFILE%\\.cache\\torch\\hub\\torchaudio\\models`\n\n---\n\n## 🟣 ECAPA-TDNN Speaker Embedding (auto speaker-assignment)\nNo manual download — **speechbrain/spkrec-ecapa-voxceleb** auto-downloads from HuggingFace the first time `auto_assign_speakers` is used.\n\n📁 **Auto-cached to:** `speechbrain_models/spkrec-ecapa-voxceleb` (inside your ComfyUI install root)\n\n---\n\n## 🟣 Whisper (transcription)\nNo manual download — the model size selected in `whisper_model_size` (e.g. `small`) auto-downloads via the `openai-whisper` package's own cache on first use.\n\n---\n\n## 🧩 Nodes Installed from ComfyUI Manager\n\n- **ComfyUI-FishAudioS2** — voice cloning ([Saganaki22/ComfyUI-FishAudioS2](https://github.com/Saganaki22/ComfyUI-FishAudioS2))\n- **audio-separation-nodes-comfyui** — Demucs separation, time-stretch, mixing ([christian-byrne/audio-separation-nodes-comfyui](https://github.com/christian-byrne/audio-separation-nodes-comfyui))\n- **ComfyUI-VideoHelperSuite** — audio/video loading (`VHS_LoadAudioUpload`, `VHS_LoadVideo`)\n\nSearch for each by name in Manager → Custom Nodes → search\n\n---\n\n## 🟣 Muse Collective Voice Swap Node\n\nInstall via Manager → **Install via Git URL:**"
-      ],
-      "color": "#EB6E33FF",
-      "bgcolor": "#000"
-    },
-    {
       "id": 20,
       "type": "VHS_LoadAudioUpload",
       "pos": [
@@ -631,7 +599,7 @@
         242.98379379251742
       ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -673,6 +641,38 @@
         }
       },
       "color": "#1A0D3AFF"
+    },
+    {
+      "id": 23,
+      "type": "MarkdownNote",
+      "pos": [
+        6330.6507422302075,
+        1674.6500868213602
+      ],
+      "size": [
+        515.3017593266959,
+        952.0818796523718
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "MUSE COLLECTIVE - Note - START HERE",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.6.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "# MODELS AND NODES USED IN THIS WORKFLOW\n\n---\n\n### Put all models in the models folder, organised into their respective subfolders.\n### If a required folder doesn't exist, create it.\n\n---\n\n## 🟣 Gemma Text Encoder (for emotion-tag annotation)\nDownload **gemma4_e4b_it_fp8_scaled.safetensors** from [HERE](https://huggingface.co/Comfy-Org/gemma-4/resolve/main/text_encoders/gemma4_e4b_it_fp8_scaled.safetensors)\n\n📁 **Place in:** `ComfyUI/models/text_encoders`\n\n---\n\n## 🟣 Fish Audio S2 Pro (voice cloning)\nDownload the whole **s2-pro-fp8** repo from [HERE](https://huggingface.co/drbaph/s2-pro-fp8) (`model.safetensors`, `codec.pth`, and its config/tokenizer files)\n\n📁 **Place in:** `ComfyUI/models/fishaudioS2/s2-pro-fp8`\n\n💡 Easier option: skip the manual download — in the Muse Voice Swap V1 node, set `fish_model_path` to **`s2-pro-fp8 (auto download)`** and it fetches this automatically on first run.\n\n---\n\n## 🟣 Demucs (vocal/background separation)\nNo manual download — **hdemucs_high_trained.pt** auto-downloads via torchaudio's own model hub the first time the node runs.\n\n📁 **Auto-cached to:** `%USERPROFILE%\\.cache\\torch\\hub\\torchaudio\\models`\n\n---\n\n## 🟣 ECAPA-TDNN Speaker Embedding (auto speaker-assignment)\nNo manual download — **speechbrain/spkrec-ecapa-voxceleb** auto-downloads from HuggingFace the first time `auto_assign_speakers` is used.\n\n📁 **Auto-cached to:** `speechbrain_models/spkrec-ecapa-voxceleb` (inside your ComfyUI install root)\n\n---\n\n## 🟣 Whisper (transcription)\nNo manual download — the model size selected in `whisper_model_size` (e.g. `small`) auto-downloads via the `openai-whisper` package's own cache on first use.\n\n---\n\n## 🧩 Nodes Installed from ComfyUI Manager\n\n- **ComfyUI-FishAudioS2** — voice cloning ([Saganaki22/ComfyUI-FishAudioS2](https://github.com/Saganaki22/ComfyUI-FishAudioS2))\n- **audio-separation-nodes-comfyui** — Demucs separation, time-stretch, mixing ([christian-byrne/audio-separation-nodes-comfyui](https://github.com/christian-byrne/audio-separation-nodes-comfyui))\n- **ComfyUI-VideoHelperSuite** — audio/video loading (`VHS_LoadAudioUpload`, `VHS_LoadVideo`)\n\nSearch for each by name in Manager → Custom Nodes → search\n\n---\n\n## 🟣 Muse Collective Voice Swap Node\n\nInstall via Manager → **Install via Git URL:**\n\nhttps://github.com/muse-collective-26/MuseVoiceSwap.git\n\nPython dependencies (`librosa`, `openai-whisper`, `soundfile`, `speechbrain`, `hyperpyyaml`) install automatically via Manager's `requirements.txt` handling."
+      ],
+      "color": "#EB6E33FF",
+      "bgcolor": "#000"
     }
   ],
   "links": [
@@ -754,10 +754,10 @@
   "extra": {
     "ue_links": [],
     "ds": {
-      "scale": 0.5989500000000008,
+      "scale": 0.7247295000000015,
       "offset": [
-        -5691.645344930289,
-        -1184.4071330155698
+        -5644.749942894768,
+        -1317.4959832770014
       ]
     },
     "links_added_by_ue": [],
