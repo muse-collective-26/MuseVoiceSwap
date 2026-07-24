@@ -572,11 +572,15 @@ def annotate_emotion_tags(
 
         clip = _load_gemma_clip_cached(clip_name)
         prompt = _EMOTION_TAG_PROMPT.format(text=transcript_text.strip())
-        # Cap generation length to roughly the size of the source line (plus
-        # room for a handful of bracket tags) so a degenerate/looping
-        # generation can't run on for hundreds of tokens in the first place.
+        # This Gemma checkpoint emits a <think>...</think> reasoning block
+        # before its actual tagged answer. The cap has to cover that reasoning
+        # PLUS the answer, not just the answer - too tight a cap truncates it
+        # mid-thought (no closing </think>, no usable tags, falls back to flat
+        # transcript below). 300 tokens of headroom covers the reasoning seen
+        # in practice; still bounded so a genuinely degenerate/looping
+        # generation can't run forever.
         word_count = max(1, len(transcript_text.split()))
-        capped_max_length = max(48, min(max_length, word_count * 4 + 40))
+        capped_max_length = max(300, min(max_length, word_count * 4 + 300))
         sampling_mode = {
             "sampling_mode": "on",
             "temperature": temperature,
