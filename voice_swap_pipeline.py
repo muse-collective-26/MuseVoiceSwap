@@ -593,6 +593,17 @@ def annotate_emotion_tags(
             audio=audio, use_default_template=True,
         )
         generated_text = output.result[0] if output.result else ""
+        # Some Gemma checkpoints emit an explicit <think>...</think> reasoning
+        # block before the actual answer. If it never closed, the model was
+        # still mid-thought when the token cap hit - there's no real answer to
+        # use. If it did close, keep only what follows it: sending the
+        # reasoning itself to Fish S2 as "emotion_text" makes it literally
+        # speak paragraphs of internal monologue instead of the line (slow
+        # and wrong - this is what was blowing up generation time).
+        if "<think>" in generated_text and "</think>" not in generated_text:
+            generated_text = ""
+        elif "</think>" in generated_text:
+            generated_text = generated_text.rsplit("</think>", 1)[-1]
         result = (generated_text or "").strip().strip('"').strip()
         if not result:
             return transcript_text
