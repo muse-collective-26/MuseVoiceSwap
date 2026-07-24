@@ -553,7 +553,7 @@ def annotate_emotion_tags(
     audio: dict,
     transcript_text: str,
     clip_name: str,
-    max_length: int = 512,
+    max_length: int = 2048,
     temperature: float = 0.7,
     seed: int = 0,
 ) -> str:
@@ -573,14 +573,18 @@ def annotate_emotion_tags(
         clip = _load_gemma_clip_cached(clip_name)
         prompt = _EMOTION_TAG_PROMPT.format(text=transcript_text.strip())
         # This Gemma checkpoint emits a <think>...</think> reasoning block
-        # before its actual tagged answer. The cap has to cover that reasoning
-        # PLUS the answer, not just the answer - too tight a cap truncates it
-        # mid-thought (no closing </think>, no usable tags, falls back to flat
-        # transcript below). 300 tokens of headroom covers the reasoning seen
-        # in practice; still bounded so a genuinely degenerate/looping
-        # generation can't run forever.
+        # before its actual tagged answer, and that reasoning runs a few
+        # hundred tokens regardless of transcript length - a cap sized to the
+        # answer alone truncates it mid-thought (no closing </think>, no
+        # usable tags, falls back to flat transcript below). 2048 is a
+        # generous flat allowance so it essentially never gets cut off
+        # mid-thought in practice, while still bounded well short of the
+        # node's true 32768 ceiling - a genuinely degenerate/looping
+        # generation (see _looks_degenerate) is caught and discarded after
+        # generation finishes, so an unbounded cap would let a bad run spend
+        # up to ~an hour before that check ever runs.
         word_count = max(1, len(transcript_text.split()))
-        capped_max_length = max(300, min(max_length, word_count * 4 + 300))
+        capped_max_length = min(max_length, max(2048, word_count * 4 + 300))
         sampling_mode = {
             "sampling_mode": "on",
             "temperature": temperature,
