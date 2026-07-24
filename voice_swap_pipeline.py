@@ -18,17 +18,108 @@ import torch
 # Segment detection
 # ---------------------------------------------------------------------------
 
+def _speaker_aware_merge(
+    intervals_sec: list[tuple[float, float]],
+    vocals_audio: dict,
+    min_gap_seconds: float,
+    merge_similarity_threshold: float,
+) -> list[tuple[float, float]]:
+    """Same job as the plain gap-based merge, but a short gap only merges two
+    intervals when a quick speaker-embedding check says they're likely the
+    same voice. A brief interjection from someone else wedged into a small
+    gap (an "ouch!", "help!", a quick reaction) stays as its own interval
+    instead of being silently absorbed into the surrounding speaker's segment,
+    which is what plain gap-based merging always did regardless of who was
+    actually talking.
+
+    Embeddings on very short intervals are inherently noisy (documented
+    elsewhere in this file — ECAPA-TDNN needs more than a word or two of
+    audio to be reliable), so this is a best-effort signal, not a guarantee.
+    Whenever the check itself fails (too short to embed, encoder unavailable,
+    etc.) this falls back to merging — the original, always-merge behavior —
+    rather than guessing a split that might not be real.
+    """
+    merged: list[tuple[float, float]] = []
+    for s, e in intervals_sec:
+        if merged and (s - merged[-1][1]) < min_gap_seconds:
+            prev_s, prev_e = merged[-1]
+            same_speaker = True
+            try:
+                emb_a = compute_speaker_embedding(crop_audio(vocals_audio, prev_s, prev_e))
+                emb_b = compute_speaker_embedding(crop_audio(vocals_audio, s, e))
+                sim = float(
+                    np.dot(emb_a, emb_b)
+                    / (np.linalg.norm(emb_a) * np.linalg.norm(emb_b) + 1e-8)
+                )
+                same_speaker = sim >= merge_similarity_threshold
+            except Exception as ex:
+                print(f"[MuseVoiceSwap] Speaker-aware merge check failed, defaulting to merge: {ex}")
+                same_speaker = True
+            if same_speaker:
+                merged[-1] = (prev_s, e)
+            else:
+                merged.append((s, e))
+        else:
+            merged.append((s, e))
+    return merged
+
+
+def _intervals_to_segments(
+    intervals_sec: list[tuple[float, float]],
+    total_dur: float,
+    min_segment_seconds: float,
+    min_gap_seconds: float,
+    vocals_audio: dict | None = None,
+    speaker_aware_merge: bool = False,
+    merge_similarity_threshold: float = 0.3,
+) -> list[dict]:
+    """Shared merge/filter/fallback logic for turning a raw list of (start, end)
+    speech intervals (in seconds, from whichever VAD method) into the segment
+    list format the rest of the pipeline expects. Falls back to treating the
+    whole clip as one segment if nothing is detected, so 1-segment and
+    N-segment sources share one code path."""
+    if not intervals_sec:
+        return [{"id": "seg_1", "start": 0.0, "end": round(total_dur, 3), "text": ""}]
+
+    # Merge intervals separated by gaps shorter than min_gap_seconds — unless
+    # speaker_aware_merge is on, in which case a short gap only merges when
+    # both sides sound like the same voice (see _speaker_aware_merge above).
+    if speaker_aware_merge and vocals_audio is not None and len(intervals_sec) > 1:
+        merged = _speaker_aware_merge(intervals_sec, vocals_audio, min_gap_seconds, merge_similarity_threshold)
+    else:
+        merged = []
+        for s, e in intervals_sec:
+            if merged and (s - merged[-1][1]) < min_gap_seconds:
+                merged[-1] = (merged[-1][0], e)
+            else:
+                merged.append((s, e))
+
+    # Drop segments shorter than min_segment_seconds (breath/click artifacts).
+    segments = []
+    for s, e in merged:
+        if (e - s) < min_segment_seconds:
+            continue
+        segments.append({"id": f"seg_{len(segments) + 1}", "start": round(s, 3), "end": round(e, 3), "text": ""})
+
+    if not segments:
+        return [{"id": "seg_1", "start": 0.0, "end": round(total_dur, 3), "text": ""}]
+
+    return segments
+
+
 def detect_speech_segments(
     vocals_audio: dict,
     top_db: float = 35.0,
     min_segment_seconds: float = 0.3,
     min_gap_seconds: float = 0.2,
+    speaker_aware_merge: bool = False,
+    merge_similarity_threshold: float = 0.3,
 ) -> list[dict]:
-    """
-    Returns list of {"id", "start", "end", "text": ""} in seconds, sorted,
-    non-overlapping. Falls back to treating the whole clip as one segment if
-    nothing is detected, so 1-segment and N-segment sources share one code path.
-    """
+    """Energy-threshold VAD (librosa.effects.split) -- the original/legacy
+    method, kept as the "energy_threshold" vad_method option so there's an
+    instant revert path if detect_speech_segments_silero doesn't work out for
+    some source material. Its main weakness: it can't tell quiet-but-real
+    speech apart from actual silence, since it's just a relative dB threshold."""
     import librosa
 
     waveform = vocals_audio["waveform"].squeeze(0)  # [C, S]
@@ -36,42 +127,86 @@ def detect_speech_segments(
     sr = vocals_audio["sample_rate"]
 
     total_dur = mono.shape[-1] / sr if sr else 0.0
-
     if mono.shape[-1] == 0 or total_dur <= 0:
         return []
 
     intervals = librosa.effects.split(mono, top_db=top_db)
+    intervals_sec = [(float(s) / sr, float(e) / sr) for s, e in intervals]
+    return _intervals_to_segments(
+        intervals_sec, total_dur, min_segment_seconds, min_gap_seconds,
+        vocals_audio=vocals_audio, speaker_aware_merge=speaker_aware_merge,
+        merge_similarity_threshold=merge_similarity_threshold,
+    )
 
-    if len(intervals) == 0:
-        return [{"id": "seg_1", "start": 0.0, "end": round(total_dur, 3), "text": ""}]
 
-    # Merge intervals separated by gaps shorter than min_gap_seconds.
-    merged = []
-    for s, e in intervals:
-        if merged and (s / sr - merged[-1][1] / sr) < min_gap_seconds:
-            merged[-1] = (merged[-1][0], e)
-        else:
-            merged.append((int(s), int(e)))
+_SILERO_VAD_CACHE: dict[str, object] = {}
 
-    # Drop segments shorter than min_segment_seconds (breath/click artifacts).
-    segments = []
-    for s, e in merged:
-        dur = (e - s) / sr
-        if dur < min_segment_seconds:
-            continue
-        segments.append(
-            {
-                "id": f"seg_{len(segments) + 1}",
-                "start": round(s / sr, 3),
-                "end": round(e / sr, 3),
-                "text": "",
-            }
-        )
 
-    if not segments:
-        return [{"id": "seg_1", "start": 0.0, "end": round(total_dur, 3), "text": ""}]
+def _load_silero_vad():
+    if "model" in _SILERO_VAD_CACHE:
+        return _SILERO_VAD_CACHE["model"], _SILERO_VAD_CACHE["get_speech_timestamps"]
 
-    return segments
+    import torch as _torch
+
+    model, utils = _torch.hub.load(
+        repo_or_dir="snakers4/silero-vad", model="silero_vad", onnx=False, trust_repo=True,
+    )
+    get_speech_timestamps = utils[0]
+    _SILERO_VAD_CACHE["model"] = model
+    _SILERO_VAD_CACHE["get_speech_timestamps"] = get_speech_timestamps
+    return model, get_speech_timestamps
+
+
+def detect_speech_segments_silero(
+    vocals_audio: dict,
+    min_segment_seconds: float = 0.3,
+    min_gap_seconds: float = 0.2,
+    silero_threshold: float = 0.5,
+    speech_pad_ms: int = 30,
+    speaker_aware_merge: bool = False,
+    merge_similarity_threshold: float = 0.3,
+) -> list[dict]:
+    """Neural VAD (Silero, auto-downloaded via torch.hub on first use, cached
+    after) in place of an energy threshold -- correctly distinguishes quiet-
+    but-real speech from actual silence, which is exactly where
+    detect_speech_segments (energy-threshold) tends to miss/merge segments.
+
+    silero_threshold: speech-probability cutoff Silero uses per audio chunk
+    before calling it "speech" at all (its own default is 0.5). Lower = more
+    sensitive, catches quieter/less confident speech that would otherwise be
+    dropped entirely -- this is the direct fix for "missing some talking",
+    separate from min_segment_seconds/min_gap_seconds below, which only
+    filter/merge segments Silero already decided WERE speech.
+    speech_pad_ms: padding added to both ends of each detected speech chunk,
+    so word onsets/tails right at a boundary don't get clipped."""
+    import torchaudio
+
+    waveform = vocals_audio["waveform"].squeeze(0)  # [C, S]
+    mono = waveform.mean(dim=0)  # [S], stays a torch tensor -- Silero wants one
+    sr = vocals_audio["sample_rate"]
+
+    total_dur = mono.shape[-1] / sr if sr else 0.0
+    if mono.shape[-1] == 0 or total_dur <= 0:
+        return []
+
+    silero_sr = 16000
+    if sr != silero_sr:
+        resample = torchaudio.transforms.Resample(sr, silero_sr)
+        mono_16k = resample(mono)
+    else:
+        mono_16k = mono
+
+    model, get_speech_timestamps = _load_silero_vad()
+    timestamps = get_speech_timestamps(
+        mono_16k, model, sampling_rate=silero_sr, return_seconds=True,
+        threshold=silero_threshold, speech_pad_ms=speech_pad_ms,
+    )
+    intervals_sec = [(float(t["start"]), float(t["end"])) for t in timestamps]
+    return _intervals_to_segments(
+        intervals_sec, total_dur, min_segment_seconds, min_gap_seconds,
+        vocals_audio=vocals_audio, speaker_aware_merge=speaker_aware_merge,
+        merge_similarity_threshold=merge_similarity_threshold,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +348,15 @@ def assign_speakers_by_similarity(
     ref_matrix = np.stack([reference_embeddings[s] for s in speaker_nums])  # [N, D]
     ref_norms = np.linalg.norm(ref_matrix, axis=1)
 
+    # Tried padding the embedding-only crop window here (to give ECAPA-TDNN
+    # more signal on the many sub-1s segments where its raw similarity scores
+    # measure as pure noise, ~0.13 max either direction). Measured directly
+    # against real segments: mixed results, most margins got WORSE, and two
+    # segments' classifications outright flipped speaker with no ground truth
+    # to say the flip was correct. Reverted -- not a verified improvement, and
+    # the padded audio pulling in adjacent breath/silence/background adds as
+    # much noise as signal. Left as a plain per-segment crop; the real fix for
+    # this scenario is manual review in the timeline, not a smarter crop.
     skipped_low_confidence = 0
     for seg in segments:
         if seg.get("locked"):
@@ -286,6 +430,60 @@ def transcribe_segment(
         fp16=torch.cuda.is_available(),
     )
     return result.get("text", "").strip()
+
+
+def transcribe_whole_with_words(
+    vocals_audio: dict,
+    model_size: str = "small",
+    language: str = "",
+) -> list[dict]:
+    """"Transcribe first" half of transcribe-first-then-align: runs Whisper ONCE
+    over the ENTIRE vocals track (full sentence context) instead of on each
+    tiny VAD-cropped fragment in isolation. Whisper is dramatically less
+    reliable given a lone half-second fragment with no surrounding context --
+    that isolation is what was producing garbled nonsense like "search." /
+    "magnetic surge." for segments that should have been complete sentences.
+    Returns word-level timestamps: [{"word", "start", "end"}, ...] in
+    chronological order, to be mapped onto segment boundaries afterward via
+    assign_words_to_segments()."""
+    model = _load_whisper_cached(model_size)
+
+    waveform = vocals_audio["waveform"].squeeze(0).mean(dim=0).cpu().numpy().astype(np.float32)
+    sr = vocals_audio["sample_rate"]
+    if waveform.shape[-1] == 0:
+        return []
+    if sr != 16000:
+        import librosa
+        waveform = librosa.resample(waveform, orig_sr=sr, target_sr=16000)
+
+    result = model.transcribe(
+        waveform,
+        language=(language or None),
+        fp16=torch.cuda.is_available(),
+        word_timestamps=True,
+    )
+
+    words = []
+    for seg in result.get("segments", []):
+        for w in seg.get("words", []):
+            text = (w.get("word") or "").strip()
+            if not text:
+                continue
+            words.append({"word": text, "start": float(w["start"]), "end": float(w["end"])})
+    return words
+
+
+def assign_words_to_segments(segments: list[dict], words: list[dict]) -> None:
+    """"Align" half of transcribe-first-then-align: fills in each segment's
+    "text" from whichever already-transcribed words (from
+    transcribe_whole_with_words) fall inside its [start, end) boundary, keyed
+    by each word's midpoint. Mutates segments in place. A segment with no
+    overlapping words is left with empty text (same as before: nothing to
+    clone there, or gets picked up on a later manual edit)."""
+    for seg in segments:
+        s, e = seg["start"], seg["end"]
+        matched = [w["word"] for w in words if s <= (w["start"] + w["end"]) / 2.0 < e]
+        seg["text"] = " ".join(matched).strip()
 
 
 # ---------------------------------------------------------------------------
@@ -543,3 +741,65 @@ def audio_duration_seconds(audio: dict) -> float:
     if sr <= 0:
         return 0.0
     return waveform.shape[-1] / sr
+
+
+def cap_runaway_clone_duration(
+    clone_audio: dict, orig_duration: float,
+    max_multiplier: float = 6.0, hard_cap_seconds: float = 30.0,
+) -> tuple[dict, float]:
+    """Guards against a TTS runaway-generation failure mode (Fish S2 occasionally
+    keeps generating far more audio than a short line calls for). Left uncapped,
+    one such segment poisons apply_ripple_placement's cumulative cursor_delta,
+    silently shifting every later segment's placement by that same absurd amount
+    -- the actual audio (not just the reported duration) is truncated so the two
+    always agree."""
+    duration = audio_duration_seconds(clone_audio)
+    allowed = max(orig_duration * max_multiplier, hard_cap_seconds)
+    if duration <= allowed:
+        return clone_audio, duration
+
+    sr = clone_audio["sample_rate"]
+    max_samples = max(1, int(round(allowed * sr)))
+    waveform = clone_audio["waveform"][..., :max_samples]
+    print(
+        f"[MuseVoiceSwap] Clone audio for a {orig_duration:.2f}s line came back "
+        f"{duration:.2f}s long -- truncating to {allowed:.2f}s to avoid corrupting "
+        f"segment placement (likely a TTS runaway-generation glitch)."
+    )
+    return {"waveform": waveform, "sample_rate": sr}, allowed
+
+
+def encode_audio_preview_b64(audio: dict, target_sample_rate: int = 22050) -> str:
+    """Mono, downsampled, base64-encoded WAV for the timeline widget's in-browser
+    playhead/scrub playback — a review aid only, never fed back into the clone/mix
+    math, so quality is traded for a small payload in the node's `ui` message.
+
+    Encodes via Python's stdlib `wave` module rather than torchaudio.save(), which
+    on newer torchaudio defaults to a torchcodec-backed encoder -- torchcodec ships
+    prebuilt libtorchcodec DLLs pinned to specific FFmpeg/PyTorch versions, and a
+    mismatch there (observed on this install: PyTorch 2.9.1+cu130) hard-crashes the
+    whole node well after the actual clone/mix work has already succeeded. The
+    resample step below is unrelated to that encoder and stays on torchaudio."""
+    import base64
+    import io
+    import wave
+
+    waveform = audio["waveform"].squeeze(0)  # [C, S]
+    sr = audio["sample_rate"]
+    if waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+    if sr != target_sample_rate:
+        import torchaudio
+        resample = torchaudio.transforms.Resample(sr, target_sample_rate)
+        waveform = resample(waveform)
+
+    samples = waveform.squeeze(0).clamp(-1.0, 1.0)
+    pcm16 = (samples * 32767.0).to(torch.int16).cpu().numpy()
+
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(target_sample_rate)
+        wf.writeframes(pcm16.tobytes())
+    return base64.b64encode(buf.getvalue()).decode("ascii")

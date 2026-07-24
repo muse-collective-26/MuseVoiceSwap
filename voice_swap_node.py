@@ -119,10 +119,6 @@ class MuseVoiceSwapV1:
             "required": {
                 "source_audio": ("AUDIO", {"tooltip": "The LTX-generated mixed audio (speech + ambient)."}),
                 "reference_audio": ("AUDIO", {"tooltip": "Voice-clone target reference, 5-30s."}),
-                "reference_text": ("STRING", {"multiline": True, "default": "", "tooltip": (
-                    "Transcript of reference_audio. Leave blank to auto-transcribe it "
-                    "internally via Whisper — no need to wire in a separate transcript node."
-                )}),
 
                 "timeline_data": ("STRING", {"default": "{}"}),
                 "use_timeline_override": ("BOOLEAN", {
@@ -204,13 +200,102 @@ class MuseVoiceSwapV1:
                 "bg_extend_mode": (["hold_last", "loop", "trim"], {"default": "hold_last"}),
                 "bg_volume": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 2.0, "step": 0.05}),
 
+                # Added last (not grouped next to vad_top_db/min_segment_seconds/
+                # min_gap_seconds above) so loading an older saved workflow's
+                # positional widgets_values array doesn't shift every widget
+                # after it by one slot.
+                "vad_method": (["silero", "energy_threshold"], {
+                    "default": "silero",
+                    "tooltip": (
+                        "silero (recommended) = neural voice-activity model, correctly tells "
+                        "quiet-but-real speech apart from actual silence. energy_threshold = "
+                        "the original librosa.effects.split method (relative dB threshold) — "
+                        "kept as an instant revert path if silero doesn't suit some source "
+                        "material. min_segment_seconds/min_gap_seconds above apply to either; "
+                        "vad_top_db only applies to energy_threshold."
+                    ),
+                }),
+                "silero_threshold": ("FLOAT", {
+                    "default": 0.5, "min": 0.1, "max": 0.9, "step": 0.05,
+                    "tooltip": (
+                        "Only applies when vad_method is silero. Speech-probability cutoff Silero "
+                        "requires before calling a chunk of audio speech at all -- LOWER this if it's "
+                        "missing quiet/soft-spoken talking (more sensitive, but risks catching more "
+                        "non-speech noise too). Separate from min_segment_seconds/min_gap_seconds, "
+                        "which only filter/merge what Silero already decided was speech."
+                    ),
+                }),
+                "silero_speech_pad_ms": ("INT", {
+                    "default": 30, "min": 0, "max": 500, "step": 10,
+                    "tooltip": (
+                        "Only applies when vad_method is silero. Padding (ms) added to both ends of "
+                        "each detected speech chunk -- raise this if word onsets/tails right at a "
+                        "segment boundary are getting clipped/missed."
+                    ),
+                }),
+
                 "timeline_ui": ("STRING", {"default": ""}),
+
+                # Added after timeline_ui (the true last field) rather than
+                # just "near the end" — anything inserted before it, even the
+                # hidden trailing widgets, shifts an old saved workflow's
+                # positional widgets_values array and lands wrong values on
+                # these new fields (confirmed: caused an empty-string value to
+                # land on min_confidence_margin on an old workflow).
+                "min_confidence_margin": ("FLOAT", {
+                    "default": 0.1, "min": 0.0, "max": 0.9, "step": 0.01,
+                    "tooltip": (
+                        "Only applies with multi_speaker_mode + auto_assign_speakers. How much "
+                        "the top speaker match must beat the runner-up (cosine similarity) before "
+                        "a segment's speaker gets auto-assigned. LOWER = more segments get "
+                        "auto-assigned (more risk of a wrong guess); HIGHER = fewer, more "
+                        "confident assignments (more segments left unchanged for manual review). "
+                        "0.1 was previously hardcoded; short (<1s) segments tend to score low "
+                        "confidence regardless of this value — that's an ECAPA-TDNN limitation on "
+                        "short clips, not something this setting fixes."
+                    ),
+                }),
+                "speaker_aware_merge": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": (
+                        "ON = before merging two speech intervals separated by a gap shorter than "
+                        "min_gap_seconds, check whether they sound like the same voice first. Only "
+                        "merges when they do — a brief interjection from someone else (an 'ouch!', "
+                        "'help!', a quick reaction) wedged into a small gap stays as its own segment "
+                        "instead of being silently absorbed into the surrounding speaker's segment, "
+                        "which is what happens with this OFF (the original behavior). Compares the "
+                        "two intervals directly against each other, not against any reference "
+                        "voice — works independently of multi_speaker_mode/auto_assign_speakers, "
+                        "and is useful even with a single known speaker (keeps an unrelated voice "
+                        "from merging into their segment). Falls back to always-merge whenever the "
+                        "check itself can't be computed."
+                    ),
+                }),
+                "merge_similarity_threshold": ("FLOAT", {
+                    "default": 0.3, "min": 0.0, "max": 0.9, "step": 0.01,
+                    "tooltip": (
+                        "Only applies with speaker_aware_merge ON. How similar two adjacent "
+                        "intervals' voices must be (cosine similarity) to still merge across a "
+                        "short gap. LOWER = merges more readily (risks absorbing a real "
+                        "interjection); HIGHER = splits more readily (risks splitting one person's "
+                        "own natural pause into two segments)."
+                    ),
+                }),
             },
             "optional": {
                 "reference_audio_2": ("AUDIO", {"tooltip": "Reference voice for segments assigned speaker 2 (multi_speaker_mode)."}),
-                "reference_text_2": ("STRING", {"multiline": True, "default": ""}),
                 "reference_audio_3": ("AUDIO", {"tooltip": "Reference voice for segments assigned speaker 3 (multi_speaker_mode)."}),
-                "reference_text_3": ("STRING", {"multiline": True, "default": ""}),
+                # forceInput: rendered as a plain input socket, no inline text
+                # box -- these are always auto-transcribed via Whisper when
+                # left unconnected (see _resolve_reference_text), so there's
+                # normally nothing to type here; wire in a STRING output only
+                # if you want to manually override a specific reference's text.
+                "reference_text": ("STRING", {"multiline": True, "default": "", "forceInput": True, "tooltip": (
+                    "Transcript of reference_audio. Leave disconnected to auto-transcribe it "
+                    "internally via Whisper — no need to wire anything in for the normal case."
+                )}),
+                "reference_text_2": ("STRING", {"multiline": True, "default": "", "forceInput": True}),
+                "reference_text_3": ("STRING", {"multiline": True, "default": "", "forceInput": True}),
             },
         }
 
@@ -231,7 +316,6 @@ class MuseVoiceSwapV1:
         self,
         source_audio,
         reference_audio,
-        reference_text,
         timeline_data,
         use_timeline_override,
         multi_speaker_mode,
@@ -242,6 +326,9 @@ class MuseVoiceSwapV1:
         vad_top_db,
         min_segment_seconds,
         min_gap_seconds,
+        vad_method,
+        silero_threshold,
+        silero_speech_pad_ms,
         whisper_model_size,
         whisper_language,
         use_llm_emotion_tags,
@@ -263,10 +350,14 @@ class MuseVoiceSwapV1:
         stretch_fft_size,
         bg_extend_mode,
         bg_volume,
+        min_confidence_margin=0.1,
+        speaker_aware_merge=False,
+        merge_similarity_threshold=0.3,
         timeline_ui="",
         reference_audio_2=None,
-        reference_text_2="",
         reference_audio_3=None,
+        reference_text="",
+        reference_text_2="",
         reference_text_3="",
     ):
         tdata = _parse_timeline_json(timeline_data)
@@ -284,11 +375,23 @@ class MuseVoiceSwapV1:
         # 2. DETECT SEGMENTS (skippable) -----------------------------------
         if use_timeline_override and tdata.get("vocalSegments"):
             segments = [dict(s) for s in tdata["vocalSegments"]]
-        else:
+        elif vad_method == "energy_threshold":
             segments = vsp.detect_speech_segments(
                 vocals, top_db=vad_top_db,
                 min_segment_seconds=min_segment_seconds,
                 min_gap_seconds=min_gap_seconds,
+                speaker_aware_merge=speaker_aware_merge,
+                merge_similarity_threshold=merge_similarity_threshold,
+            )
+        else:
+            segments = vsp.detect_speech_segments_silero(
+                vocals,
+                min_segment_seconds=min_segment_seconds,
+                min_gap_seconds=min_gap_seconds,
+                silero_threshold=silero_threshold,
+                speech_pad_ms=silero_speech_pad_ms,
+                speaker_aware_merge=speaker_aware_merge,
+                merge_similarity_threshold=merge_similarity_threshold,
             )
 
         # 2b. AUTO-ASSIGN SPEAKERS (skipped entirely under override — same "trust
@@ -307,22 +410,34 @@ class MuseVoiceSwapV1:
                 except Exception as e:
                     print(f"[MuseVoiceSwap] Could not embed reference voice for speaker {spk_num}: {e}")
             if len(reference_embeddings) >= 2:
-                segments = vsp.assign_speakers_by_similarity(segments, vocals, reference_embeddings)
+                segments = vsp.assign_speakers_by_similarity(
+                    segments, vocals, reference_embeddings,
+                    min_confidence_margin=min_confidence_margin,
+                )
             else:
                 print("[MuseVoiceSwap] auto_assign_speakers needs at least 2 reference voices — skipping.")
 
-        # 3. TRANSCRIBE (skippable per-segment) -----------------------------
-        for seg in segments:
+        # 3. TRANSCRIBE (skippable per-segment) -- transcribe-first-then-align:
+        # Whisper transcribes the WHOLE vocals track ONCE, with full sentence
+        # context, then those word-level timestamps get mapped onto each
+        # segment's boundaries -- rather than cropping each segment first and
+        # transcribing that tiny fragment in isolation, which is what produced
+        # garbled nonsense (e.g. "search." / "magnetic surge.") for segments
+        # that should have been complete, coherent sentences. Whisper is far
+        # less reliable given a lone half-second clip with zero context. -----
+        segments_needing_text = [
+            seg for seg in segments
             # A locked segment keeps its text even on a fresh auto-detect pass;
             # otherwise skipping re-transcription only applies under override mode.
-            already_has_text = seg.get("text", "").strip()
-            if already_has_text and (seg.get("locked") or use_timeline_override):
-                continue
-            seg["text"] = vsp.transcribe_segment(
-                vocals, seg["start"], seg["end"],
+            if not (seg.get("text", "").strip() and (seg.get("locked") or use_timeline_override))
+        ]
+        if segments_needing_text:
+            words = vsp.transcribe_whole_with_words(
+                vocals,
                 model_size=whisper_model_size,
                 language=("" if whisper_language == "auto" else whisper_language),
             )
+            vsp.assign_words_to_segments(segments_needing_text, words)
 
         # 3b. ANNOTATE emotion tags (optional, skippable per-segment) ----------
         if use_llm_emotion_tags:
@@ -401,7 +516,7 @@ class MuseVoiceSwapV1:
                 reference_text=ref_text,
             )
             orig_duration = seg["end"] - seg["start"]
-            clone_duration = vsp.audio_duration_seconds(clone_audio)
+            clone_audio, clone_duration = vsp.cap_runaway_clone_duration(clone_audio, orig_duration)
             cloned_segments.append({
                 **seg,
                 "clone_audio": clone_audio,
@@ -485,6 +600,29 @@ class MuseVoiceSwapV1:
         AudioCombine = get_audio_combine_class()
         (final_audio,) = AudioCombine().main(new_vocals_only, bg_audio_only, method="add")
 
+        # Two separate audio previews for the timeline widget's playback --
+        # never let an encoding failure (e.g. an environment-specific
+        # torchaudio/torchcodec DLL mismatch) discard an otherwise-successful
+        # run, so each is guarded independently.
+        #
+        # 1) The cloned/mixed result -- for checking how the actual output
+        #    sounds while working through segments.
+        try:
+            audio_preview_b64 = vsp.encode_audio_preview_b64(final_audio)
+        except Exception as e:
+            print(f"[MuseVoiceSwap] Could not encode final-audio preview for the timeline widget: {e}")
+            audio_preview_b64 = ""
+
+        # 2) The original separated vocals, untouched by segmentation/cloning
+        #    -- has real dialogue everywhere, including any gap with no
+        #    segment yet, so it's what the timeline's secondary scrubber uses
+        #    to help find/place missing segments.
+        try:
+            og_audio_preview_b64 = vsp.encode_audio_preview_b64(vocals)
+        except Exception as e:
+            print(f"[MuseVoiceSwap] Could not encode original-vocals preview for the timeline widget: {e}")
+            og_audio_preview_b64 = ""
+
         # 9. Serialize timeline_data back out -------------------------------------
         updated_segments = [_segment_to_json(cseg) for cseg in cloned_segments]
         updated_timeline_data = json.dumps({
@@ -507,6 +645,8 @@ class MuseVoiceSwapV1:
                     "segments": updated_segments,
                     "source_duration": round(source_duration, 3),
                     "final_duration": round(final_length_seconds, 3),
+                    "audio_preview_b64": audio_preview_b64,
+                    "og_audio_preview_b64": og_audio_preview_b64,
                 }],
             },
             "result": (
